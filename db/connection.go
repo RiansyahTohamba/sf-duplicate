@@ -10,7 +10,7 @@ import (
 )
 
 type RedisClient struct {
-	redisCl *redis.Client
+	*redis.Client
 }
 
 func GetRedisClient() *RedisClient {
@@ -24,7 +24,7 @@ func GetRedisClient() *RedisClient {
 		})
 		rcl = &RedisClient{client}
 	})
-	_, err := rcl.redisCl.Ping(context.TODO()).Result()
+	_, err := rcl.Ping(context.TODO()).Result()
 	if err != nil {
 		fmt.Println("running redis-server --daemonize yes")
 		log.Fatalf("Could not connect to redis %v", err)
