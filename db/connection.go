@@ -29,5 +29,6 @@ func GetRedisClient() *RedisClient {
 		fmt.Println("running redis-server --daemonize yes")
 		log.Fatalf("Could not connect to redis %v", err)
 	}
+
 	return rcl
 }
