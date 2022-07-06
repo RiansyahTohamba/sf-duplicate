@@ -12,6 +12,8 @@ type Tweet struct {
 	Id         int    `redis:"id"`
 	Message    string `redis:"msg"`
 	TimePosted int64  `redis:"time"`
+	Retweet    int    `redis:"retweet"`
+	Love       int    `redis:"love"`
 }
 
 type TweetRepo struct {
@@ -20,6 +22,14 @@ type TweetRepo struct {
 
 func NewTweetRepo(rcl *redis.Client) *TweetRepo {
 	return &TweetRepo{rcl}
+}
+func (twr *TweetRepo) SortByLove() {
+
+}
+
+// RT = retweet
+func (twr *TweetRepo) SortByRT() []Tweet {
+
 }
 
 func (twr *TweetRepo) Write(twReq request.TweetRequest) (int64, error) {
