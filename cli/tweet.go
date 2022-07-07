@@ -22,20 +22,13 @@ func (twc tweetCli) ReadByUser(userId string) {
 
 func (twc tweetCli) WriteTweet(msg, userId string) {
 	twdata := request.TweetRequest{UserId: userId, Message: msg}
-	ok, err := twc.Write(twdata)
-	// fmt.Println(ok)
-	colsLen := 3
+	err := twc.Write(twdata)
 
-	if ok != int64(colsLen) {
-		fmt.Println(ok)
-		fmt.Println("gagal input")
+	if err != nil {
+		log.Println("fail write tweet")
+		log.Println(err)
 	} else {
-		if err != nil {
-			log.Println(err)
-		} else {
-			fmt.Println("success write")
-
-		}
+		fmt.Println("success write")
 	}
 
 }
