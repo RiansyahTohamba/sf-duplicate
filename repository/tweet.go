@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"math/rand"
 	"sf-duplicate/request"
 	"time"
@@ -29,26 +30,23 @@ func (twr *TweetRepo) SortByLove() {
 
 // RT = retweet
 func (twr *TweetRepo) SortByRT() []Tweet {
-
+	return []Tweet{}
 }
 
-func (twr *TweetRepo) Write(twReq request.TweetRequest) (int64, error) {
+func (twr *TweetRepo) Write(twReq request.TweetRequest) error {
 	// rq: how to generate id?
 	id := rand.Intn(3000)
-	// content := tweet{
-	// 	Id:         id,
-	// 	Message:    twtMsg,
-	// 	TimePosted: time.Now().Unix(),
-	// }
-	// ok, err := twr.rcl.HSet(ctx, userId, "id", id, "key2", "value2").Result()
 
-	ok, err := twr.rcl.HSet(ctx, twReq.UserId, map[string]interface{}{
+	isdup, err := twr.rcl.HSet(ctx, twReq.UserId, map[string]interface{}{
 		"id":   id,
 		"msg":  twReq.Message,
 		"time": time.Now().Unix(),
 	}).Result()
 
-	return ok, err
+	if isdup == 0 {
+		return errors.New("tweet has duplicated")
+	}
+	return err
 }
 
 func (twr *TweetRepo) Read(tweetId string) (Tweet, error) {
