@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
-	"math/rand"
+	"sf-duplicate/request"
+	"time"
 
 	"github.com/go-redis/redis/v9"
 )
@@ -22,7 +24,7 @@ type article struct {
 }
 
 type ArticleRepo struct {
-	redCl *redis.Client
+	rcl *redis.Client
 }
 
 var ctx = context.TODO()
@@ -31,37 +33,67 @@ func NewArticleRepo(redCl *redis.Client) *ArticleRepo {
 	return &ArticleRepo{redCl}
 }
 
-// hash-key: article:22
-// title: "Connecting Redis server with django"
-// link: https://stackoverflow.com
-// poster: user:832
-// time: 1331355699.33
-// votes: 250
+// contek saja vote yang ada pada buku, sebaiknya jangan buat rancang-data yang lain dulu
+func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
+	var err error
+	// generate article_id
+	articleId := ar.rcl.Incr(ctx, "article:")
+	articleHKey := fmt.Sprintf("article:%d", articleId.Val())
 
-func (ar *ArticleRepo) Create() {
-	// ar.redCl.Set()
-	id := rand.Intn(1000)
-	articleId := fmt.Sprintf("article:%d", id)
-	article := map[string]article{}
-	err := ar.redCl.HSet(ctx, articleId, article)
+	// SADD voted = {votekey:score}
+	votedSKey := fmt.Sprintf("article:%d", articleId.Val())
+	isdup, err := ar.rcl.SAdd(ctx, votedSKey, arReq.Votes).Result()
 
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
-	fmt.Println("article success created")
+	if isdup == 0 {
+		return errors.New("user has voted (duplicated)")
+	}
+
+	// ZADD score:
+	err = ar.rcl.ZAdd(ctx, "score:", redis.Z{
+		Score:  arReq.Votes,
+		Member: articleHKey,
+	}).Err()
+
+	if err != nil {
+		return err
+	}
+	// ZADD time:
+	err = ar.rcl.ZAdd(ctx, "time:", redis.Z{
+		Score:  float64(arReq.Time),
+		Member: articleHKey,
+	}).Err()
+
+	if err != nil {
+		return err
+	}
+
+	// HSET article
+	isdup, err = ar.rcl.HSet(ctx, articleHKey, map[string]interface{}{
+		"poster": arReq.Poster,
+		"title":  arReq.Title,
+		"link":   arReq.Link,
+		"time":   time.Now().Unix(),
+		"votes":  arReq.Votes,
+	}).Result()
+
+	if err != nil {
+		return err
+	}
+
+	if isdup == 0 {
+		return errors.New("article has duplicated")
+	}
+
+	return nil
 }
-
-// hSet := client.HSet(ctx, "hash", "key", "hello")
-// Expect(hSet.Err()).NotTo(HaveOccurred())
-
-// hDel := client.HDel(ctx, "hash", "key")
-// Expect(hDel.Err()).NotTo(HaveOccurred())
-// Expect(hDel.Val()).To(Equal(int64(1)))
 
 func (ar *ArticleRepo) Vote(zkey, member string, score int) {
 	// score, members
-	err := ar.redCl.ZAdd(ctx, zkey, redis.Z{
+	err := ar.rcl.ZAdd(ctx, zkey, redis.Z{
 		Score:  float64(score),
 		Member: member,
 	}).Err()
