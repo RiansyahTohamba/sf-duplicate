@@ -1,3 +1,4 @@
 docs/spec.md
 docs/redis_test.md
 redis_test/redis_test.go
+dump.rdb
