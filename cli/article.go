@@ -4,26 +4,43 @@ import (
 	"fmt"
 	"log"
 	"sf-duplicate/repository"
+	"sf-duplicate/request"
 )
 
-type articleCli struct {
+type ArticleCli struct {
 	repository.ArticleRepo
 }
 
-func NewArticleCli(arRepo repository.ArticleRepo) *articleCli {
-	return &articleCli{arRepo}
+func NewArticleCli(arRepo repository.ArticleRepo) *ArticleCli {
+	return &ArticleCli{arRepo}
+}
+
+// func (twc tweetCli) WriteTweet(msg, userId string) {
+// 	twdata := request.TweetRequest{UserId: userId, Message: msg}
+// 	err := twc.Write(twdata)
+
+func (arc ArticleCli) PostArticle(title, link, poster string, time int64, votes float64) {
+	arData := request.ArticleRequest{Title: title, Link: link, Poster: poster, Time: time, Votes: votes}
+	err := arc.Post(arData)
+
+	if err != nil {
+		log.Println("fail post article")
+		log.Println(err)
+	} else {
+		fmt.Println("success post article")
+	}
 }
 
 // siapa saja yang vote?
 // input=
-func (arc articleCli) getUserVoted() {
+func (arc ArticleCli) PrintUserVoted() {
 	// harus ada user struct disini
 	// err := arc.Write(twdata)
 
 }
 
 // show me most scored article
-func (arc articleCli) PrintMostScoredArticle() {
+func (arc ArticleCli) PrintMostScoredArticle() {
 	res, err := arc.GetArticles("score:")
 	if err != nil {
 		log.Println(err)
@@ -35,6 +52,13 @@ func (arc articleCli) PrintMostScoredArticle() {
 }
 
 // show me most recent article
-func (arc articleCli) getRecentArticle() {
-
+func (arc ArticleCli) PrintRecentArticle() {
+	res, err := arc.GetArticles("time:")
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println("most recent article")
+	for _, v := range res {
+		fmt.Println(v)
+	}
 }
