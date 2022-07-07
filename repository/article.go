@@ -43,10 +43,12 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 
 	// SADD voted = {votekey:score}
 	votedSKey := fmt.Sprintf("article:%d", articleId.Val())
+
 	isdup, err := ar.rcl.SAdd(ctx, votedSKey, arReq.Votes).Result()
 
 	if err != nil {
-		return err
+		// apa nih? bagaimana cara nya nesting error pada saat handel error?
+		return fmt.Errorf("SAdd Voted has been Failed: %w", err)
 	}
 
 	if isdup == 0 {
@@ -60,7 +62,7 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 	}).Err()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("ZAdd score: has been Failed: %w", err)
 	}
 	// ZADD time:
 	err = ar.rcl.ZAdd(ctx, "time:", redis.Z{
@@ -69,7 +71,7 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 	}).Err()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("ZAdd time: has been Failed: %w", err)
 	}
 
 	// HSET article
@@ -82,11 +84,11 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 	}).Result()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("HSet Article has been Failed: %w", err)
 	}
 
 	if isdup == 0 {
-		return errors.New("article has duplicated")
+		return errors.New("article has been duplicated")
 	}
 
 	return nil
