@@ -17,10 +17,11 @@ import (
 // time: 1331355699.33
 // votes: 250
 type article struct {
-	title  string
-	link   string
-	poster string
-	time   int64
+	poster string  `redis:"poster"`
+	title  string  `redis:"title"`
+	link   string  `redis:"link"`
+	time   int64   `redis:"time"`
+	votes  float64 `redis:"time"`
 }
 
 type ArticleRepo struct {
@@ -104,10 +105,26 @@ func (ar *ArticleRepo) Vote(zkey, member string, score int) {
 	fmt.Println("success voted")
 }
 
-func (ar *ArticleRepo) Read() {
+func (ar *ArticleRepo) GetArticles(order string) ([]article, error) {
+	// SMEMBERS
+	res, err := ar.rcl.SMembers(ctx, order).Result()
+	if err != nil {
+		return nil, err
+	}
+	var articles []article
+	var art article
+	// harus melibatkan 2 set, apakah pakai INTERSET?
+	for _, arid := range res {
+		res := ar.rcl.HGetAll(ctx, arid)
+		err := res.Scan(&art)
+		if err != nil {
+			return nil, err
+		}
+		articles = append(articles, art)
+	}
 
+	return articles, nil
 }
 
-func (ar *ArticleRepo) FindAll() {
-
+func (ar *ArticleRepo) Read() {
 }
