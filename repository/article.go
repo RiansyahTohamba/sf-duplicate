@@ -36,16 +36,13 @@ func NewArticleRepo(redCl *redis.Client) *ArticleRepo {
 
 func (ar *ArticleRepo) orderByTime(time int64, articleHKey string) error {
 	// ZADD time:
-	fmt.Printf("add time %s \n", articleHKey)
+	// fmt.Printf("add time %s \n", articleHKey)
 	err := ar.rcl.ZAdd(ctx, "time:", redis.Z{
 		Score:  float64(time),
 		Member: articleHKey,
 	}).Err()
 
-	if err != nil {
-		return fmt.Errorf("ZAdd time: has been Failed: %w", err)
-	}
-	return nil
+	return err
 }
 func (ar *ArticleRepo) orderByScore(votes float64, articleHKey string) error {
 	// ZADD score:
@@ -55,11 +52,7 @@ func (ar *ArticleRepo) orderByScore(votes float64, articleHKey string) error {
 		Member: articleHKey,
 	}).Err()
 
-	if err != nil {
-		return fmt.Errorf("ZAdd score: has been Failed: %w", err)
-	}
-
-	return nil
+	return err
 }
 
 // contek saja vote yang ada pada buku, sebaiknya jangan buat rancang-data yang lain dulu
@@ -88,9 +81,17 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 		errs <- ar.orderByScore(arReq.Votes, articleHKey)
 	}()
 
+	if err := <-errs; err != nil {
+		return fmt.Errorf("ZAdd score: has been Failed: %w", err)
+	}
+
 	go func() {
 		errs <- ar.orderByTime(arReq.Time, articleHKey)
 	}()
+
+	if err := <-errs; err != nil {
+		return fmt.Errorf("ZAdd time: has been Failed: %w", err)
+	}
 
 	// HSET article
 	isdup, err = ar.rcl.HSet(ctx, articleHKey, map[string]interface{}{
@@ -111,7 +112,7 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 
 	fmt.Printf("Article Id: %s : ", articleHKey)
 
-	return <-errs
+	return err
 }
 
 func (ar *ArticleRepo) Vote(zkey, member string, score int) {
