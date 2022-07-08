@@ -34,6 +34,34 @@ func NewArticleRepo(redCl *redis.Client) *ArticleRepo {
 	return &ArticleRepo{redCl}
 }
 
+func (ar *ArticleRepo) orderByTime(time int64, articleHKey string) error {
+	// ZADD time:
+	fmt.Printf("add time %s \n", articleHKey)
+	err := ar.rcl.ZAdd(ctx, "time:", redis.Z{
+		Score:  float64(time),
+		Member: articleHKey,
+	}).Err()
+
+	if err != nil {
+		return fmt.Errorf("ZAdd time: has been Failed: %w", err)
+	}
+	return nil
+}
+func (ar *ArticleRepo) orderByScore(votes float64, articleHKey string) error {
+	// ZADD score:
+	// fmt.Printf("add score %s \n", articleHKey)
+	err := ar.rcl.ZAdd(ctx, "score:", redis.Z{
+		Score:  votes,
+		Member: articleHKey,
+	}).Err()
+
+	if err != nil {
+		return fmt.Errorf("ZAdd score: has been Failed: %w", err)
+	}
+
+	return nil
+}
+
 // contek saja vote yang ada pada buku, sebaiknya jangan buat rancang-data yang lain dulu
 func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 	var err error
@@ -54,24 +82,15 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 		return errors.New("user has voted (duplicated)")
 	}
 
-	// ZADD score:
-	err = ar.rcl.ZAdd(ctx, "score:", redis.Z{
-		Score:  arReq.Votes,
-		Member: articleHKey,
-	}).Err()
+	errs := make(chan error, 1)
 
-	if err != nil {
-		return fmt.Errorf("ZAdd score: has been Failed: %w", err)
-	}
-	// ZADD time:
-	err = ar.rcl.ZAdd(ctx, "time:", redis.Z{
-		Score:  float64(arReq.Time),
-		Member: articleHKey,
-	}).Err()
+	go func() {
+		errs <- ar.orderByScore(arReq.Votes, articleHKey)
+	}()
 
-	if err != nil {
-		return fmt.Errorf("ZAdd time: has been Failed: %w", err)
-	}
+	go func() {
+		errs <- ar.orderByTime(arReq.Time, articleHKey)
+	}()
 
 	// HSET article
 	isdup, err = ar.rcl.HSet(ctx, articleHKey, map[string]interface{}{
@@ -89,8 +108,10 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 	if isdup == 0 {
 		return errors.New("article has been duplicated")
 	}
+
 	fmt.Printf("Article Id: %s : ", articleHKey)
-	return nil
+
+	return <-errs
 }
 
 func (ar *ArticleRepo) Vote(zkey, member string, score int) {
