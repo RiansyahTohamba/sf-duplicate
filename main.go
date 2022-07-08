@@ -15,12 +15,52 @@ func main() {
 func sfExample(client *db.RedisClient) {
 	arRepo := repository.NewArticleRepo(client.Client)
 	arCli := cli.NewArticleCli(*arRepo)
+
+	// post article or seed data
+	seedData(arCli)
 	// siapa saja yang vote?
 
 	// show me most scored article
-	arCli.PrintMostScoredArticle()
+	// arCli.PrintMostScoredArticle()
 	// show me most recent article
+	// arCli.PrintRecentArticle()
 
+}
+
+func seedData(arCli *cli.ArticleCli) {
+	postArticle1(arCli)
+	postArticle2(arCli)
+	postArticle3(arCli)
+}
+func postArticle1(arCli *cli.ArticleCli) {
+	title := "How to specify go-redis expires"
+	link := "https://stackoverflow.com"
+	poster := "user:832"
+
+	time := 1331344699
+	votes := 528
+
+	arCli.PostArticle(title, link, poster, int64(time), float64(votes))
+}
+
+func postArticle2(arCli *cli.ArticleCli) {
+	title := "Connecting Redis server with django"
+	link := "https://stackoverflow.com"
+	poster := "user:832"
+	time := 1331355610
+	votes := 250
+
+	arCli.PostArticle(title, link, poster, int64(time), float64(votes))
+}
+
+func postArticle3(arCli *cli.ArticleCli) {
+	title := "How to migrate from RabbitMQ to REDIS in.net"
+	link := "https://stackoverflow.com"
+	poster := "user:832"
+	time := 1331382699
+	votes := 234
+
+	arCli.PostArticle(title, link, poster, int64(time), float64(votes))
 }
 
 func tweetExample(client *db.RedisClient) {

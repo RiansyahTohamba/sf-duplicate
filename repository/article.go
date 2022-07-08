@@ -42,12 +42,11 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 	articleHKey := fmt.Sprintf("article:%d", articleId.Val())
 
 	// SADD voted = {votekey:score}
-	votedSKey := fmt.Sprintf("article:%d", articleId.Val())
+	votedSKey := fmt.Sprintf("voted:%d", articleId.Val())
 
 	isdup, err := ar.rcl.SAdd(ctx, votedSKey, arReq.Votes).Result()
 
 	if err != nil {
-		// apa nih? bagaimana cara nya nesting error pada saat handel error?
 		return fmt.Errorf("SAdd Voted has been Failed: %w", err)
 	}
 
@@ -90,7 +89,7 @@ func (ar *ArticleRepo) Post(arReq request.ArticleRequest) error {
 	if isdup == 0 {
 		return errors.New("article has been duplicated")
 	}
-
+	fmt.Printf("Article Id: %s : ", articleHKey)
 	return nil
 }
 

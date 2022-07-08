@@ -23,7 +23,7 @@ hash-key: article:33
 title: "How to migrate from RabbitMQ to REDIS in.net application"
 link: https://stackoverflow.com
 poster: user:832
-time: 1331382699.33
+time: 1331382699
 votes: 234
 
 ## article:44
