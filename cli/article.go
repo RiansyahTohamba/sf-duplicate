@@ -7,6 +7,8 @@ import (
 	"sf-duplicate/request"
 )
 
+var articlePerPage int64 = 7
+
 type ArticleCli struct {
 	repository.ArticleRepo
 }
@@ -41,7 +43,7 @@ func (arc ArticleCli) PrintUserVoted() {
 
 // show me most scored article
 func (arc ArticleCli) PrintMostScoredArticle() {
-	res, err := arc.GetArticles("score:")
+	res, err := arc.GetArticles("score:", articlePerPage)
 	if err != nil {
 		log.Println(err)
 	}
@@ -53,12 +55,15 @@ func (arc ArticleCli) PrintMostScoredArticle() {
 
 // show me most recent article
 func (arc ArticleCli) PrintRecentArticle() {
-	res, err := arc.GetArticles("time:")
+
+	res, err := arc.GetArticles("time:", articlePerPage)
 	if err != nil {
 		log.Println(err)
 	}
 	fmt.Println("most recent article")
 	for _, v := range res {
-		fmt.Println(v)
+		fmt.Println("---------")
+		fmt.Println(v.Time)
+		fmt.Println(v.Title)
 	}
 }
