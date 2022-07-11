@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"sf-duplicate/api"
 	"sf-duplicate/cli"
 	"sf-duplicate/db"
 	"sf-duplicate/repository"
@@ -8,11 +10,18 @@ import (
 
 func main() {
 	client := db.GetRedisClient()
-	// tweetExample(client)
-	sfExample(client)
+	// sfExampleCli(client)
+	exampleApi(client)
 }
 
-func sfExample(client *db.RedisClient) {
+func exampleApi(client *db.RedisClient) {
+	fmt.Println("API example")
+	arRepo := repository.NewArticleRepo(client.Client)
+	api.StartRouter(arRepo)
+	// arApi := api.
+}
+
+func sfExampleCli(client *db.RedisClient) {
 	arRepo := repository.NewArticleRepo(client.Client)
 	arCli := cli.NewArticleCli(*arRepo)
 
