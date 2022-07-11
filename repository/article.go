@@ -17,11 +17,11 @@ import (
 // time: 1331355699.33
 // votes: 250
 type article struct {
-	poster string  `redis:"poster"`
-	title  string  `redis:"title"`
-	link   string  `redis:"link"`
-	time   int64   `redis:"time"`
-	votes  float64 `redis:"time"`
+	Poster string  `redis:"poster"`
+	Title  string  `redis:"title"`
+	Link   string  `redis:"link"`
+	Time   int64   `redis:"time"`
+	Votes  float64 `redis:"votes"`
 }
 
 type ArticleRepo struct {
@@ -128,18 +128,21 @@ func (ar *ArticleRepo) Vote(zkey, member string, score int) {
 	fmt.Println("success voted")
 }
 
-func (ar *ArticleRepo) GetArticles(order string) ([]article, error) {
-	// SMEMBERS
-	res, err := ar.rcl.SMembers(ctx, order).Result()
+func (ar *ArticleRepo) GetArticles(order string, articlePerPage int64) ([]article, error) {
+	// ZSET
+	start := int64(0)
+
+	articleIds, err := ar.rcl.ZRevRange(ctx, order, int64(start), articlePerPage).Result()
+
 	if err != nil {
 		return nil, err
 	}
 	var articles []article
 	var art article
 	// harus melibatkan 2 set, apakah pakai INTERSET?
-	for _, arid := range res {
+	for _, arid := range articleIds {
 		res := ar.rcl.HGetAll(ctx, arid)
-		err := res.Scan(&art)
+		err = res.Scan(&art)
 		if err != nil {
 			return nil, err
 		}
