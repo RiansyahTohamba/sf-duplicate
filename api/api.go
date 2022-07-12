@@ -20,26 +20,16 @@ func NewApi(arRepo *repository.ArticleRepo) *SfApi {
 func StartRouter(arRepo *repository.ArticleRepo) {
 	sfapi := NewApi(arRepo)
 
-	router := gin.Default()
-
-	secret := []byte("secret")
-	size := 10
-
-	store, _ := redis.NewStore(size, "tcp", "localhost:6379", "", secret)
-
-	router.Use(sessions.Sessions("sfsession", store))
-
-	router.POST("/login", Login)
-	router.POST("/logout", Logout)
-	user := router.Group("/v1/user")
-
-	user.Use(SessionAuthentication())
-
-	{
-		user.GET("/home", sfapi.listArticles)
-	}
+	router := GetRouter(sfapi)
 
 	router.Run(":8080")
+}
+
+func getRedisStore() redis.Store {
+	pwd := []byte("secret")
+	size := 10
+	redisStore, _ := redis.NewStore(size, "tcp", "localhost:6379", "", pwd)
+	return redisStore
 }
 
 func SessionAuthentication() gin.HandlerFunc {
