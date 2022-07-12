@@ -32,10 +32,12 @@ func getRedisStore() redis.Store {
 	return redisStore
 }
 
-func SessionAuthentication() gin.HandlerFunc {
+func sessionAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+
 		session := sessions.Default(ctx)
 		sessionID := session.Get("id")
+
 		if sessionID == nil {
 			ctx.JSON(http.StatusNotFound, gin.H{
 				"message": "unauthorized",
