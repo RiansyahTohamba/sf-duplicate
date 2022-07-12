@@ -1,12 +1,9 @@
 package api
 
 import (
-	"net/http"
 	"sf-duplicate/repository"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
-	"github.com/gin-gonic/gin"
 )
 
 type SfApi struct {
@@ -30,19 +27,4 @@ func getRedisStore() redis.Store {
 	size := 10
 	redisStore, _ := redis.NewStore(size, "tcp", "localhost:6379", "", pwd)
 	return redisStore
-}
-
-func sessionAuth() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-
-		session := sessions.Default(ctx)
-		sessionID := session.Get("id")
-
-		if sessionID == nil {
-			ctx.JSON(http.StatusNotFound, gin.H{
-				"message": "unauthorized",
-			})
-			ctx.Abort()
-		}
-	}
 }
