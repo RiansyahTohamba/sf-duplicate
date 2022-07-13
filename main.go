@@ -14,43 +14,6 @@ import (
 func main() {
 	client := db.GetRedisClient()
 	// sfExampleCli(client)
-	/*
-		PSEUDO CODE
-		RecentlyViewArticle perlu 2 fitur ini
-		1. Create via addRecentlyView(user_id, article_id)
-		2. Retrieve via getRecentlyViews(user_id)
-
-		STORY
-		terdapat user yang membaca sebuah artikel.
-		untuk membedakan user yg satu dengan yang lain dengan  cara menandai mereka dengan session 'user_id'.
-
-		usrRepo.addRecentlyView(user_id, )
-
-		tipe data redis yang dipakai adalah sorted_set.
-		berisikan artikel apa saja yang sudah dibaca
-
-		case ketika kita akan menambahkan pencatatan bagi recentread milik suatu user.
-		example command on cli.
-
-		127.0.0.1:6379> zadd recentread:'user:1' 10 'article:1'
-		(integer) 1
-		127.0.0.1:6379> zadd recentread:user:1 10 article:2
-		(integer) 1
-		127.0.0.1:6379> zadd recentread:user:1 42 article:3
-		(integer) 1
-		127.0.0.1:6379> zadd recentread:user:1 45 article:4
-		(integer) 1
-
-		lalu bagaimana jika kita ingin melihat list article apa saja yang sudah dibaca user?
-
-		127.0.0.1:6379> zrange recentread:user:1 0 -1
-		1) "article:1"
-		2) "article:3"
-		3) "article:2"
-		4) "article:4"
-
-	*/
-
 	// exampleApi(client)
 	readArticlesCli(client)
 }
