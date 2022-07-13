@@ -15,7 +15,7 @@ func NewArticleHandler(arRepo *repository.ArticleRepo) *ArticleHandler {
 	return &ArticleHandler{arRepo}
 }
 
-func (arh *ArticleHandler) listArticles(ctx *gin.Context) {
+func (arh *ArticleHandler) ListArticles(ctx *gin.Context) {
 	articles, err := arh.arRepo.GetArticles("time:", 10)
 
 	if err != nil {
