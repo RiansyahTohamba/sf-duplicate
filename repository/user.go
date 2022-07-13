@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"log"
 
 	"github.com/go-redis/redis/v9"
 	"golang.org/x/crypto/bcrypt"
@@ -12,7 +13,7 @@ type User struct {
 	ID           uint `gorm:"primary_key"`
 	Username     string
 	Email        string
-	PasswordHash string
+	PasswordHash string `gorm:"column:password"`
 }
 
 type UserRepository struct {
@@ -76,16 +77,18 @@ func (usr *UserRepository) WriteRecentlyView(userId string) error {
 func (usr *UserRepository) Login(email, password string) (*User, error) {
 	var user User
 
-	err := usr.orm.Find(&user, &User{Email: email}).Error
+	dbRresult := usr.orm.Where("email = ?", email).First(&user)
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if errors.Is(dbRresult.Error, gorm.ErrRecordNotFound) {
+		// handle record not found
 		return nil, &EmailNotExistsError{}
 	}
 
 	// compare hash password in DB vs password yg datang dari request.Body
-	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 
 	if err != nil {
+		log.Println(err)
 		return nil, &PasswordMissMatchError{}
 	}
 
