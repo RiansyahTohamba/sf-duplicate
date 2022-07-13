@@ -7,33 +7,59 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func StartRouter(arRepo *repository.ArticleRepo) {
+func StartRouter(arRepo *repository.ArticleRepo, usrRepo *repository.UserRepository) {
 	arHandler := handler.NewArticleHandler(arRepo)
-	usrHandler := handler.NewUserHandler(arRepo)
+	usrHandler := handler.NewUserHandler(usrRepo)
 
 	router := gin.Default()
 	router.Use(sessions.Sessions("sfsession", getRedisStore()))
 
 	router.GET("/", rootHandler)
 
-	router.Use(sessions.Sessions("counter", getRedisStore()))
+	router.POST("/login", usrHandler.Login)
 
-	router.GET("/incr", incrementHandler)
-
-	router.POST("/login", Login)
-	router.POST("/logout", Logout)
+	router.POST("/logout", usrHandler.Logout)
 
 	user := router.Group("/api/v1/user")
 	user.Use(sessionAuth())
 
 	{
-		user.GET("/home", arHandler.listArticles)
+		user.GET("/home", arHandler.ListArticles)
 	}
+	// playground
+	router.Use(sessions.Sessions("counter", getRedisStore()))
+	router.GET("/incr", incrementHandler)
+	router.POST("/testmapping", testMapping)
+
 	router.Run(":8080")
 }
 
+type UserTest struct {
+	Password string `json:"password"`
+}
+
+func testMapping(ctx *gin.Context) {
+	var utreq UserTest
+	err := ctx.BindJSON(&utreq)
+
+	hashedPassword := "$2a$10$faZx20KXiAIJjHH6MrBlKOipS.AbsPrIu1W55Nnk6CO6UDnDYZFO6"
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(utreq.Password))
+
+	if err != nil {
+		ctx.JSON(500, gin.H{
+			"msg": err.Error(),
+		})
+	} else {
+		ctx.JSON(200, gin.H{
+			"msg": utreq.Password,
+		})
+	}
+
+}
 func rootHandler(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
 		"message": "welcome API",
@@ -62,7 +88,6 @@ func incrementHandler(ctx *gin.Context) {
 		counter++
 	}
 	session.Set("counter", counter)
-	session.Set("token", generateSecureToken(10))
 	session.Save()
 
 	ctx.JSON(200, gin.H{
