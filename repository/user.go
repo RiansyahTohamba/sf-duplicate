@@ -42,24 +42,15 @@ func (usr *UserRepository) CheckToken(token string) error {
 	return err
 }
 
-// func (u *UserRepository) Login(email string, password string) (*int, error) {
-// 	statement := "SELECT id, password FROM users WHERE email = ?"
-// 	res := u.db.QueryRow(statement, email, password)
-// 	var hashedPassword string
-// 	var id int
-// 	res.Scan(&id, &hashedPassword)
-// 	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) != nil {
-// 		return nil, errors.New("Login Failed")
-// 	}
-// 	return &id, nil
-// }
-
 func SignUp() {
 
 }
 
-// TODO: skip
-func (usr *UserRepository) WriteRecentlyView(userId string) error {
+// 1. Create via addRecentlyView(user_id, article_id)
+// 2. Retrieve via getRecentlyViews(user_id)
+
+// zadd viewed:user:1 10 'article:1'
+func (usr *UserRepository) AddRecentlyView(userId string) error {
 	//   - HSet("myhash", "key1", "value1", "key2", "value2")
 
 	// conn.hset()
@@ -71,6 +62,11 @@ func (usr *UserRepository) WriteRecentlyView(userId string) error {
 	// bisa diambil dari session
 	err := usr.rcl.HSet(ctx, hkey, token, userId).Err()
 	return err
+
+}
+
+// zrange viewed:user:1 0 -1
+func (usr *UserRepository) GetRecentlyViews(userId string) {
 
 }
 
