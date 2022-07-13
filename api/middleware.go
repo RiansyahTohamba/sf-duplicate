@@ -11,10 +11,10 @@ func sessionAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
 		session := sessions.Default(ctx)
-		sessionID := session.Get("userId")
+		sessionID := session.Get("user_id")
 
 		if sessionID == nil {
-			ctx.JSON(http.StatusNotFound, gin.H{
+			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"message": "unauthorized",
 			})
 			ctx.Abort()

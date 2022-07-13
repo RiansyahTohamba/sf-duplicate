@@ -11,7 +11,7 @@ import (
 )
 
 func StartRouter(arRepo *repository.ArticleRepo, usrRepo *repository.UserRepository) {
-	arHandler := handler.NewArticleHandler(arRepo)
+	arHandler := handler.NewArticleHandler(arRepo, usrRepo)
 	usrHandler := handler.NewUserHandler(usrRepo)
 
 	router := gin.Default()
@@ -27,13 +27,17 @@ func StartRouter(arRepo *repository.ArticleRepo, usrRepo *repository.UserReposit
 	user.Use(sessionAuth())
 
 	{
-		user.GET("/home", arHandler.ListArticles)
+		user.GET("/home", arHandler.List)
+		// use params in gin?
+		user.GET("/article/:id", arHandler.Detail)
 	}
-	// playground
-	router.Use(sessions.Sessions("counter", getRedisStore()))
-	router.GET("/incr", incrementHandler)
-	router.POST("/testmapping", testMapping)
 
+	//======================== playground
+	{
+		router.Use(sessions.Sessions("counter", getRedisStore()))
+		router.GET("/incr", incrementHandler)
+		router.POST("/testmapping", testMapping)
+	}
 	router.Run(":8080")
 }
 
