@@ -7,6 +7,8 @@ import (
 	"sync"
 
 	"github.com/go-redis/redis/v9"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 type RedisClient struct {
@@ -31,4 +33,10 @@ func GetRedisClient() *RedisClient {
 	}
 
 	return rcl
+
+}
+
+func GetSqliteClient() (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open("db/sfduplicate.db"), &gorm.Config{})
+	return db, err
 }
