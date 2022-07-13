@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"sf-duplicate/api"
 	"sf-duplicate/cli"
 	"sf-duplicate/db"
@@ -16,9 +17,16 @@ func main() {
 
 func exampleApi(client *db.RedisClient) {
 	fmt.Println("API example")
+
+	orm, err := db.GetSqliteClient()
+	if err != nil {
+		log.Println(err)
+	}
+
+	usrRepo := repository.NewUserRepo(client.Client, orm)
+
 	arRepo := repository.NewArticleRepo(client.Client)
-	api.StartRouter(arRepo)
-	// arApi := api.
+	api.StartRouter(arRepo, usrRepo)
 }
 
 func sfExampleCli(client *db.RedisClient) {
