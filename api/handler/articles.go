@@ -4,7 +4,6 @@ import (
 	"log"
 	"sf-duplicate/repository"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,9 +19,9 @@ func NewArticleHandler(arRepo *repository.ArticleRepo, usrRepo *repository.UserR
 // recently view disimpan diuser atau di article?
 // di user saja, lebih make-sense
 func (arh *ArticleHandler) Detail(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-	userId := session.Get("user_id").(string)
-	arh.usrRepo.WriteRecentlyView(userId)
+	// session := sessions.Default(ctx)
+	// userId := session.Get("user_id").(string)
+	// arh.usrRepo.WriteRecentlyView(userId)
 }
 func (arh *ArticleHandler) List(ctx *gin.Context) {
 	articles, err := arh.arRepo.GetArticles("time:", 10)
