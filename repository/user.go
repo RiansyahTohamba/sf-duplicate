@@ -2,7 +2,9 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/go-redis/redis/v9"
 	"golang.org/x/crypto/bcrypt"
@@ -50,24 +52,30 @@ func SignUp() {
 // 2. Retrieve via getRecentlyViews(user_id)
 
 // zadd viewed:user:1 10 'article:1'
-func (usr *UserRepository) AddRecentlyView(userId string) error {
-	//   - HSet("myhash", "key1", "value1", "key2", "value2")
+func (usr *UserRepository) AddRecentlyView(userId string, articleId int) error {
+	zkey := fmt.Sprintf("viewed:%s", userId)
 
-	// conn.hset()
-	hkey := "login:"
-
-	// token menjadi key, valuenya adalah user
-	token := ""
-
-	// bisa diambil dari session
-	err := usr.rcl.HSet(ctx, hkey, token, userId).Err()
+	err := usr.rcl.ZAdd(ctx, zkey, redis.Z{
+		Member: fmt.Sprintf("article:%d", articleId),
+		Score:  float64(time.Now().Unix()),
+	}).Err()
 	return err
 
 }
 
 // zrange viewed:user:1 0 -1
-func (usr *UserRepository) GetRecentlyViews(userId string) {
+// return list of articles:id
+func (usr *UserRepository) GetRecentlyViews(userId string) ([]string, error) {
+	zkey := fmt.Sprintf("viewed:%s", userId)
 
+	start := int64(0)
+	end := int64(-1)
+
+	articleIds, err := usr.rcl.ZRange(ctx, zkey, start, end).Result()
+	if err != nil {
+		return nil, err
+	}
+	return articleIds, nil
 }
 
 func (usr *UserRepository) Login(email, password string) (*User, error) {
