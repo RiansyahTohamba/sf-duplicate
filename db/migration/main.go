@@ -18,7 +18,7 @@ func main() {
 	seedUser(db, "bio", "bio@gmail.com")
 	seedUser(db, "pogba", "pogba@gmail.com")
 
-	rows, err := db.Query("SELECT * FROM user")
+	rows, err := db.Query("SELECT * FROM users")
 	if err != nil {
 		panic(err)
 	}
@@ -34,7 +34,7 @@ func Migrate() (*sql.DB, error) {
 	}
 
 	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS user (
+		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 			username VARCHAR(255) NOT NULL UNIQUE,
 			password VARCHAR(255) NOT NULL,
@@ -52,7 +52,7 @@ func Migrate() (*sql.DB, error) {
 
 func seedUser(db *sql.DB, name, email string) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-	_, err := db.Exec("INSERT INTO user (username, email, password, role_id) VALUES (?, ?, ?, 1)", name, email, hashedPassword)
+	_, err := db.Exec("INSERT INTO users (username, email, password, role_id) VALUES (?, ?, ?, 1)", name, email, hashedPassword)
 	if err != nil {
 		panic(err)
 	}
