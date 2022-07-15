@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func getStartEnd(page, itemPerPage int) (start, end int) {
+func getStartEndPagination(page, itemPerPage int) (start, end int) {
 	if page == 1 {
 		start = 0
 	} else {

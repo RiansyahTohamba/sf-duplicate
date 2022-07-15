@@ -13,9 +13,9 @@ import (
 
 func main() {
 	client := db.GetRedisClient()
-	// sfExampleCli(client)
+	postArticle(client)
 	// exampleApi(client)
-	readArticlesCli(client)
+	// readArticlesCli(client)
 }
 
 func exampleApi(client *db.RedisClient) {
@@ -61,28 +61,34 @@ func seedRecenltyView(usrRepo *repository.UserRepository) {
 	}
 }
 
-func sfExampleCli(client *db.RedisClient) {
+func postArticle(client *db.RedisClient) {
 	arRepo := repository.NewArticleRepo(client.Client)
 	arCli := cli.NewArticleCli(*arRepo)
 
 	// post article or seed data
-	seedData(arCli)
+	// seedData(arCli)
 	// siapa saja yang vote?
 
 	// show me most scored article
 	// arCli.PrintMostScoredArticle()
 	// show me most recent article
-	// arCli.PrintRecentArticle()
+	arCli.PrintRecentArticle(1)
+
+	arCli.PrintRecentArticle(2)
+
+	arCli.PrintRecentArticle(3)
 
 }
 
 func seedData(arCli *cli.ArticleCli) {
-	postArticle1(arCli)
+	for i := 0; i < 20; i++ {
+		postArticle1(arCli, i)
+	}
 	postArticle2(arCli)
 	postArticle3(arCli)
 }
-func postArticle1(arCli *cli.ArticleCli) {
-	title := "How to specify go-redis expires"
+func postArticle1(arCli *cli.ArticleCli, part int) {
+	title := fmt.Sprintf("part %d - How to specify go-redis expires", part)
 	link := "https://stackoverflow.com"
 	poster := "user:832"
 

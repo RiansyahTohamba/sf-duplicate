@@ -128,11 +128,22 @@ func (ar *ArticleRepo) Vote(zkey, member string, score int) {
 	fmt.Println("success voted")
 }
 
-func (ar *ArticleRepo) GetArticles(order string, articlePerPage int64) ([]article, error) {
-	// ZSET
-	start := int64(0)
+func (ar *ArticleRepo) getStartEndPagination(page, itemPerPage int64) (start, end int64) {
+	if page == 1 {
+		start = 0
+	} else {
+		start = (page - 1) * itemPerPage
+	}
 
-	articleIds, err := ar.rcl.ZRevRange(ctx, order, int64(start), articlePerPage).Result()
+	end = (start - 1) + itemPerPage
+	return
+}
+
+func (ar *ArticleRepo) GetArticles(order string, page int64, articlePerPage int64) ([]article, error) {
+
+	start, end := ar.getStartEndPagination(page, articlePerPage)
+
+	articleIds, err := ar.rcl.ZRevRange(ctx, order, start, end).Result()
 
 	if err != nil {
 		return nil, err

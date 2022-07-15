@@ -24,7 +24,7 @@ func (arh *ArticleHandler) Detail(ctx *gin.Context) {
 	// arh.usrRepo.WriteRecentlyView(userId)
 }
 func (arh *ArticleHandler) List(ctx *gin.Context) {
-	articles, err := arh.arRepo.GetArticles("time:", 10)
+	articles, err := arh.arRepo.GetArticles("time:", 1, 5)
 
 	if err != nil {
 		ctx.JSON(500, gin.H{
